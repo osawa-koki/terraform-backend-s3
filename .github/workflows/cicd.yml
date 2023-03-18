@@ -1,0 +1,42 @@
+name: My Main CI/CD Workflow
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  terraform-directory: ./terraform
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.4.0
+    - uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+    - name: Create terraform.tfvars file
+      run: echo $'${{ secrets.TFVARS }}' > terraform.tfvars
+      working-directory: ${{ env.terraform-directory }}
+    - name: Terraform Init
+      run: terraform init -upgrade
+            -backend-config="bucket=${{ secrets.BACKEND_BUCKET_NAME }}"
+            -backend-config="key=${{ secrets.BACKEND_KEY_NAME }}"
+      working-directory: ${{ env.terraform-directory }}
+    - name: Terraform Plan
+      run: terraform plan
+      working-directory: ${{ env.terraform-directory }}
+    - name: Terraform Apply
+      run: terraform apply --auto-approve
+      working-directory: ${{ env.terraform-directory }}
