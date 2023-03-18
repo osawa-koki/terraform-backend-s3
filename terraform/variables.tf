@@ -4,10 +4,9 @@ variable "project_name" {
   description = "Name of the project."
 }
 
-variable "ssh_public_key_path" {
+variable "ssh_public_key" {
   type = string
-  default = "~/.ssh/id_rsa.pub"
-  description = "Path to the public key."
+  description = "Content of the public key."
 }
 
 variable "allowed_ip_addresses" {
